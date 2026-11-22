@@ -56,9 +56,9 @@ window.MVLS_CONFIG = {
     ],
     /** 워크숍 계좌이체 — 신청 완료 화면에 표시 [확인 필요: LAB 계좌] */
     workshop: {
-      bank: '[확인 필요] 은행',
-      holder: '[확인 필요] 예금주',
-      account: '[확인 필요] 계좌번호',
+      bank: '국민은행',
+      holder: '강호진',
+      account: '437601-01-495389',
     },
   },
 
@@ -82,7 +82,7 @@ window.MVLS_CONFIG = {
 
   /** 사업자 정보 (푸터) [확인 필요] */
   businesses: {
-    LAB: { name: '마블러스호진스튜디오 랩', ceo: '강호진', bizNo: '[확인 필요]' },
+    LAB: { name: '마블러스호진스튜디오 랩', ceo: '강호진', bizNo: '728-07-02046' },
   },
 
   /** 장르 색상 */
