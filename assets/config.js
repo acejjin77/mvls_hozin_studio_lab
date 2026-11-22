@@ -11,7 +11,7 @@ window.MVLS_CONFIG = {
    * 요청에 site=lab 이 붙어 있어 서버가 LAB 신청으로 구분합니다.
    * 비워두면 "데모 모드": 실제 접수 없이 이 브라우저에만 저장되고, 워크숍은 아래 demoWorkshops 로 표시됩니다.
    */
-  API_URL: '',
+  API_URL: 'https://script.google.com/macros/s/AKfycbwzekCtfuQlyZrw9lLZsWsBlxdmrC4elpsgYOBTATMgpWQNI-fVNYkPtmkf06nlx1dwIQ/exec',
 
   /** 관리자 시트 주소 (푸터 '관리자' 링크). 비워두면 링크가 숨겨집니다. */
   ADMIN_SHEET_URL: '',

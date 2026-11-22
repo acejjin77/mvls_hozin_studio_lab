@@ -113,7 +113,7 @@ git remote -v   # 학원 저장소가 아닌지 확인 후 push
 
 `assets/classes.js` 만 수정합니다. (형식은 파일 상단 주석 참고)
 
-- `tickets`: `{ type: '4W', weeks: 4 }` = 월 등록 4주, `{ type: '1T', price: 40000 }` = 1회권 (영문 1 Time 에 금액 표시)
+- `tickets`: `{ type: '4W', weeks: 4 }` = 4주권, `{ type: '1T', price: 40000 }` = 1회권 (영문 1 Time 에 금액 표시)
 - `period`: 기간제 프로그램 — 기간 안에 n주가 모두 들어가는 시작일만 선택 가능, 휴식권 적용 안 됨
 - `closures` 휴강(No Program) · `subs` 대강 → 상단 공지와 날짜 선택에 자동 반영
 
