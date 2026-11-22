@@ -1,12 +1,14 @@
 /**
  * MVLS HOZIN STUDIO LAB - 사이트 설정
  * ------------------------------------------------------------
- * 학원(mvls-web)과 별도 사업자입니다. API_URL 은 반드시 LAB 전용 구글 시트의 Apps Script 주소를 넣으세요.
+ * 학원(mvls-web)과 별도 사업자입니다. 접수는 학원과 같은 스프레드시트 파일의 'LAB …' 탭에 따로 쌓입니다.
  * [확인 필요] 표시는 실제 값으로 교체가 필요한 항목입니다.
  */
 window.MVLS_CONFIG = {
   /**
-   * LAB 전용 Google Apps Script 웹앱 URL (apps-script/Code.gs 배포 후 붙여넣기)
+   * 학원(mvls-web) config.js 와 '같은' Apps Script 웹앱 URL 을 넣습니다.
+   * (학원 Apps Script 프로젝트에 apps-script/Lab.gs 를 추가하고 새 버전으로 재배포한 뒤)
+   * 요청에 site=lab 이 붙어 있어 서버가 LAB 신청으로 구분합니다.
    * 비워두면 "데모 모드": 실제 접수 없이 이 브라우저에만 저장되고, 워크숍은 아래 demoWorkshops 로 표시됩니다.
    */
   API_URL: '',

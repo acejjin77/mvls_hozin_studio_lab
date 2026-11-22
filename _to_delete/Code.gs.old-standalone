@@ -11,14 +11,19 @@
  *
  * 워크숍은 '워크숍관리' 탭에서 한 줄로 추가·삭제합니다. (홈페이지에 바로 반영, 재배포 불필요)
  *
- * ※ 학원(마블러스호진댄스학원)과 별도 사업자이므로, 학원 신청 시트와 다른 구글 시트에 설치하세요.
+ * 설치 방법은 두 가지입니다 (README 1번).
+ *  A) 학원(mvls-web) 구글 시트에 LAB 탭을 함께 두기
+ *     script.google.com 에서 '새 프로젝트'(학원 Code.gs 와 다른 프로젝트) → 이 파일 붙여넣기
+ *     → 스크립트 속성 SPREADSHEET_ID = 학원 시트 ID → setup 실행 → 웹 앱 배포
+ *     ※ 학원 Apps Script 프로젝트 안에 파일로 추가하면 doPost·setup 이름이 겹쳐 학원 접수가 깨집니다.
+ *  B) LAB 전용 구글 시트: 새 시트 → 확장 프로그램 → Apps Script → 붙여넣기 → setup → 배포
  *
- * 설치: 새 구글 시트 → 확장 프로그램 → Apps Script → 이 파일 붙여넣기 → setup 실행
- *       → 배포 → 새 배포 → 웹 앱 (실행: 나, 액세스: 모든 사용자) → URL 을 config.js API_URL 에
- * 스크립트 속성: NOTIFY_EMAIL (새 신청 알림 메일, 쉼표로 여러 개, 선택)
+ * 스크립트 속성
+ *  SPREADSHEET_ID  (A 방식) 신청을 쌓을 구글 시트 ID — 시트 주소의 /d/ 와 /edit 사이 문자열
+ *  NOTIFY_EMAIL    새 신청 알림 메일 (쉼표로 여러 개, 선택)
  */
 
-var CODE_VERSION = '2026-11-22-lab-v1'; // 배포 URL 을 브라우저로 열면 보이는 값. 코드 수정 시 함께 변경
+var CODE_VERSION = '2026-11-22-lab-v2'; // 배포 URL 을 브라우저로 열면 보이는 값. 코드 수정 시 함께 변경
 var TZ = 'Asia/Seoul';
 var ID_PREFIX = 'LB';
 var STATUS = ['입금대기', '입금확인', '확정', '대기', '취소', '환불'];
@@ -28,15 +33,34 @@ var LOOKUP_PER_KEY_10MIN = 10;
 var LOOKUP_PER_MIN = 40;
 var LOOKUP_MAX_ITEMS = 30;
 
+/**
+ * LAB 탭 이름 앞에 붙는 글자. 학원 시트와 한 파일에 둘 때 학원 탭('신청내역', '수업별현황')과 구분됩니다.
+ * 운영 시작 후에는 바꾸지 마세요 (바꾸면 새 탭이 따로 만들어집니다).
+ */
+var TAB_PREFIX = 'LAB ';
+
 /** 고정 신청서 → 시트 */
 var FORMS = {
-  single: { sheet: '1회권', tickets: ['1T'] },
-  monthly: { sheet: '월등록', tickets: ['4W', 'FULL'] },
-  foreign: { sheet: '1 Time', tickets: ['1T'] },
+  single: { sheet: TAB_PREFIX + '1회권', tickets: ['1T'] },
+  monthly: { sheet: TAB_PREFIX + '월등록', tickets: ['4W', 'FULL'] },
+  foreign: { sheet: TAB_PREFIX + '1 Time', tickets: ['1T'] },
 };
-var SHEET_WS_ADMIN = '워크숍관리';
-var WS_PREFIX = '워크숍_';
-var SHEET_SUMMARY = '현황';
+var SHEET_WS_ADMIN = TAB_PREFIX + '워크숍관리';
+var WS_PREFIX = TAB_PREFIX + '워크숍_';
+var SHEET_SUMMARY = TAB_PREFIX + '현황';
+
+/**
+ * 신청을 쌓을 구글 시트.
+ * 스크립트 속성 SPREADSHEET_ID 가 있으면 그 시트(예: 학원 시트)를, 없으면 이 스크립트가 붙어 있는 시트를 씁니다.
+ */
+function ss_() {
+  if (ss_.cache) return ss_.cache;
+  var id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  var ss = id ? SpreadsheetApp.openById(String(id).trim()) : SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('신청을 쌓을 시트를 찾을 수 없습니다. 스크립트 속성 SPREADSHEET_ID 를 설정하세요.');
+  ss_.cache = ss;
+  return ss;
+}
 var WS_STATES = ['모집중', '마감', '숨김'];
 var WS_MAX_OPTIONS = 4;
 
@@ -79,7 +103,7 @@ function onOpen() {
 
 /** 신청서 시트 3개, 워크숍관리 탭(예시 포함), 현황 탭을 만듭니다. 여러 번 실행해도 안전합니다. */
 function setup() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   ss.setSpreadsheetTimeZone(TZ);
   Object.keys(FORMS).forEach(function (k) { ensureSheet_(FORMS[k].sheet, PROGRAM_COLS); });
   ensureWsAdmin_();
@@ -87,12 +111,13 @@ function setup() {
     if (sh.getName().indexOf(WS_PREFIX) === 0) ensureSheet_(sh.getName(), WS_COLS);
   });
   rebuildSummary_();
-  ss.toast('MVLS LAB 신청 시트 설정 완료', 'MVLS LAB', 5);
+  try { ss.toast('MVLS LAB 신청 시트 설정 완료', 'MVLS LAB', 5); } catch (e) { /* 시트 화면 밖에서 실행 */ }
+  Logger.log('MVLS LAB 설정 완료: ' + ss.getName() + ' (' + ss.getUrl() + ')');
 }
 
 /** 시트가 없으면 만들고, 헤더·상태 드롭다운·색상·서식을 맞춥니다. 기존 헤더·데이터는 건드리지 않습니다. */
 function ensureSheet_(name, cols) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(name);
   var created = false;
   if (!sh) { sh = ss.insertSheet(name); created = true; }
@@ -116,10 +141,10 @@ function ensureSheet_(name, cols) {
 
 /** '워크숍관리' 탭: 없으면 만들고 현재 진행 중인 워크숍 예시를 채웁니다. */
 function ensureWsAdmin_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(SHEET_WS_ADMIN);
   if (sh) return sh;
-  sh = ss.insertSheet(SHEET_WS_ADMIN, 0);
+  sh = ss.insertSheet(SHEET_WS_ADMIN);
   var head = WS_ADMIN_HEAD;
   if (sh.getMaxColumns() < head.length) sh.insertColumnsAfter(sh.getMaxColumns(), head.length - sh.getMaxColumns());
   sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#3b2a1d').setFontColor('#ffffff');
@@ -147,7 +172,7 @@ function ensureWsAdmin_() {
 
 /** '현황' 탭: 신청서 시트별 상태 건수 (수식이라 자동 갱신) */
 function rebuildSummary_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sm = ss.getSheetByName(SHEET_SUMMARY) || ss.insertSheet(SHEET_SUMMARY);
   sm.clear();
   var head = ['신청서 (시트)', '유효 신청 (취소·환불 제외)'].concat(STATUS);
@@ -329,7 +354,7 @@ function findWorkshop_(id) {
 }
 
 function readWorkshops_() {
-  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_WS_ADMIN);
+  var sh = ss_().getSheetByName(SHEET_WS_ADMIN);
   if (!sh || sh.getLastRow() < 2) return [];
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
   var at = function (h) { return head.indexOf(h); };
@@ -363,7 +388,7 @@ function saveRow_(sheetName, cols, a, isDup, mailTitle) {
   if (!lock.tryLock(15000)) return { ok: false, code: 'SERVER' };
   var result, created = false;
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = ss_();
     var sh = ss.getSheetByName(sheetName);
     if (!sh) { sh = ensureSheet_(sheetName, cols); created = true; }
     var map = headerMap_(sh, cols);
@@ -415,7 +440,7 @@ function notify_(a, sheetName, title) {
         a.amount !== '' && a.amount !== undefined ? '금액: ' + Number(a.amount).toLocaleString() + '원 (' + a.payMethod + ')' : '',
         a.isMinor ? '14세 미만 · 보호자 ' + a.guardianName + ' ' + a.guardianPhone : '',
         a.memo ? '문의: ' + a.memo : '',
-        '', '시트: ' + SpreadsheetApp.getActiveSpreadsheet().getUrl(),
+        '', '시트: ' + ss_().getUrl(),
       ].filter(function (l) { return l !== ''; }).join('\n'),
     });
   } catch (err) {
@@ -443,7 +468,7 @@ function handleLookup_(p) {
   if (k >= LOOKUP_PER_KEY_10MIN) return { ok: false, code: 'RATE_LIMIT' };
   cache.put(kKey, String(k + 1), 600);
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var items = [];
   ss.getSheets().forEach(function (sh) {
     var sname = sh.getName();

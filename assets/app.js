@@ -19,8 +19,7 @@
       'hero.cta': '프로그램 고르기', 'hero.kakao': '카카오 상담',
       'notice.title': '휴강 · 대강 안내',
       'forms.title': '신청서', 'forms.hint': '신청서를 고르면 해당 신청으로 이동해요',
-      'forms.single': '[1회권] 프로그램 신청서', 'forms.singleD': '원하는 날 한 번 참여',
-      'forms.monthly': '[월 등록] 프로그램 신청서', 'forms.monthlyD': '시작일부터 4주 (기간제 프로그램은 8주·11주)',
+      'forms.program': '[1회권 · 월 등록] 프로그램 신청서', 'forms.programD': '프로그램을 고른 뒤 1회권 또는 월 등록 중 선택',
       'forms.foreign': '[1 Time] Register for Foreigner', 'forms.foreignD': '외국인 1회 신청 · 현장 현금 (영문 화면)',
       'forms.ws': '[Workshop] 워크숍 신청서', 'forms.wsD': '진행 예정 워크숍 신청',
       'tt.title': '전체 프로그램', 'tt.hint': '프로그램을 누르면 바로 신청할 수 있어요',
@@ -37,7 +36,7 @@
       'loc.map': '지도 보기', 'loc.kakao': '카카오 채널 문의',
       'ft.refund': '프로그램 참여 안내', 'ft.privacy': '<b>개인정보 처리방침</b>', 'ft.admin': '관리자',
       'ft.note': '프로그램 일정은 스튜디오 사정에 따라 변경될 수 있습니다.',
-      'f.title': '프로그램 신청', 'f.titleSingle': '[1회권] 프로그램 신청', 'f.titleMonthly': '[월 등록] 프로그램 신청',
+      'f.title': '프로그램 신청',
       'f.ticket': '권종', 'f.date': '참여 시작일', 'f.dateOne': '참여 일자',
       'f.name': '이름', 'f.phone': '연락처', 'f.age': '연령대 <small>(선택)</small>', 'f.ageNone': '선택 안 함',
       'f.kind': '신청 구분', 'f.kindPre': '사전 신청', 'f.kindOnsite': '현장 신청 (스튜디오에서 신청)',
@@ -95,8 +94,7 @@
       'hero.cta': 'Find a program', 'hero.kakao': 'Ask on Kakao',
       'notice.title': 'Schedule changes',
       'forms.title': 'Applications', 'forms.hint': 'Pick an application form',
-      'forms.single': '[1회권] Korean 1-time form', 'forms.singleD': 'Korean page',
-      'forms.monthly': '[월 등록] Korean monthly form', 'forms.monthlyD': 'Korean page',
+      'forms.program': '[1회권 · 월 등록] Korean program form', 'forms.programD': 'Korean page · 1-time or monthly',
       'forms.foreign': '[1 Time] Register for Foreigner', 'forms.foreignD': 'One program · pay in cash at the studio',
       'forms.ws': '[Workshop] Workshops', 'forms.wsD': 'Upcoming workshops',
       'tt.title': 'Programs', 'tt.hint': 'Tap a program to book',
@@ -113,7 +111,7 @@
       'loc.map': 'Map', 'loc.kakao': 'Kakao channel',
       'ft.refund': 'Program information', 'ft.privacy': '<b>Privacy policy</b>', 'ft.admin': 'Admin',
       'ft.note': 'Schedules may change depending on studio circumstances.',
-      'f.title': '[1 Time] Register for Foreigner', 'f.titleSingle': '[1 Time] Register for Foreigner', 'f.titleMonthly': '[1 Time] Register for Foreigner',
+      'f.title': '[1 Time] Register for Foreigner',
       'f.ticket': 'Pass', 'f.date': 'Start date', 'f.dateOne': 'Visiting date',
       'f.name': 'Name', 'f.phone': 'Phone', 'f.age': 'Age group <small>(optional)</small>', 'f.ageNone': 'Prefer not to say',
       'f.kind': 'Type of registration', 'f.kindPre': 'Pre-registration', 'f.kindOnsite': 'Registration at the studio',
@@ -239,8 +237,6 @@
   /** 국문 1회권·월등록은 참여비를 연락처로 안내 (config.showProgramPriceKo), 영문 1 Time 은 표시 */
   function showPrice() { return isForeign() || !!CFG.showProgramPriceKo; }
   function priceOf(tk) { return showPrice() && tk.price != null ? won(tk.price) : ''; }
-  /** 신청서 구분 → 시트: 1회권 / 월등록 / 1 Time */
-  function formOf(tk) { return isForeign() ? 'foreign' : (tk.type === '1T' ? 'single' : 'monthly'); }
   function genre(c) { return CFG.genres[c.genre] || { label: '', color: '#888' }; }
   function title(c) { return (lang === 'ko' && c.titleKo) ? c.titleKo : c.title; }
   function closures(c) { return (c.closures || []).concat(CFG.holidays || []); }
@@ -535,7 +531,7 @@
   function renderDates(keep) {
     var c = state.cls, tk = c.tickets[state.ticketIdx];
     $('#dateLegend').textContent = tk && tk.type === '4W' ? t('f.date') : t('f.dateOne');
-    $('#applyTitle').textContent = !tk ? t('f.title') : (tk.type === '1T' ? t('f.titleSingle') : t('f.titleMonthly'));
+    $('#applyTitle').textContent = t('f.title');
     if (!tk) { $('#dateChoices').innerHTML = '<p class="empty">' + t('ticket.noDate') + '</p>'; state.date = null; renderHelp(); return; }
     var ds = startDates(c, tk);
     if (!keep || ds.indexOf(state.date) < 0) state.date = ds[0] || null;
@@ -594,7 +590,7 @@
     var fd = new FormData(form);
     var minor = $('#fMinor').checked;
     return {
-      form: formOf(tk), // single(1회권) / monthly(월등록) / foreign(1 Time) → 시트
+      form: 'program', // 1회권 · 월 등록 · 영문 1 Time 모두 'LAB 신청내역' 탭 (영문은 lang:'en' → 1회권만)
       requestId: state.requestId,
       business: c.business,
       classId: c.id,
@@ -659,14 +655,14 @@
     el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  var SHEET_OF = { single: '1회권', monthly: '월등록', foreign: '1 Time' };
-  /** 데모 모드: 실제 서버 대신 이 브라우저에 저장 (신청서별 시트 이름도 함께 기록) */
+  var SHEET_APPS = 'LAB 신청내역'; // Lab.gs 의 탭 이름과 같게
+  /** 데모 모드: 실제 서버 대신 이 브라우저에 저장 (들어갈 시트 이름도 함께 기록) */
   function demoSend(payload) {
     return new Promise(function (resolve) {
       setTimeout(function () {
         var list = demoList();
         var ws = payload.form === 'workshop';
-        var sheet = ws ? '워크숍_' + payload.workshopId : SHEET_OF[payload.form];
+        var sheet = ws ? 'LAB 워크숍_' + payload.workshopId : SHEET_APPS;
         var dup = list.some(function (r) {
           var same = (payload.phone && r.phone === payload.phone) || (payload.instagram && normIg(r.instagram) === payload.instagram);
           if (!same || r.sheet !== sheet || r.status === '취소') return false;
@@ -675,7 +671,7 @@
         if (dup) { resolve({ ok: false, code: 'DUPLICATE' }); return; }
         var seq = list.filter(function (r) { return r.id.indexOf(idPrefix()) === 0; }).length + 1;
         var id = idPrefix() + '-' + ('00' + seq).slice(-3);
-        var payMethod = ws ? (payload.payMethod === 'cash' ? '현장 현금' : '계좌이체') : (payload.form === 'foreign' ? '현장 현금' : '안내 후 수납');
+        var payMethod = ws ? (payload.payMethod === 'cash' ? '현장 현금' : '계좌이체') : (payload.lang === 'en' ? '현장 현금' : '안내 후 수납');
         var extra = { sheet: sheet, instagram: payload.instagram ? '@' + payload.instagram : '', payMethod: payMethod };
         if (ws) {
           var w = (CFG.demoWorkshops || []).filter(function (x) { return x.id === payload.workshopId; })[0];
@@ -695,7 +691,7 @@
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 25000);
     // Content-Type 을 지정하지 않으면 text/plain 으로 전송되어 CORS 사전요청(preflight)이 생기지 않음 (Apps Script 권장 방식)
-    return fetch(CFG.API_URL, { method: 'POST', body: JSON.stringify(payload), signal: ctrl ? ctrl.signal : undefined, redirect: 'follow' })
+    return fetch(CFG.API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ site: 'lab' }, payload)), signal: ctrl ? ctrl.signal : undefined, redirect: 'follow' })
       .then(function (r) { return r.json(); })
       .finally(function () { clearTimeout(timer); });
   }
@@ -851,7 +847,7 @@
         var pay = it.payMethod ? (en ? (PAY_EN[it.payMethod] || it.payMethod) : it.payMethod) : '';
         var amt = it.amount == null || it.amount === '' ? '' : t('lk.amount') + ' <b>' + won(Number(it.amount) || 0) + '</b>';
         var payLine = [amt, pay ? t('lk.pay') + ' <b>' + esc(pay) + '</b>' : ''].filter(Boolean).join(' · ');
-        var head = '<div class="lkcard__top"><span class="lkcard__id">' + esc(it.id) + ' · ' + esc(it.sheet || '') + '</span><span class="st st--' + st.cls + '">' + esc(en ? st.en : it.status) + '</span></div>';
+        var head = '<div class="lkcard__top"><span class="lkcard__id">' + esc(it.id) + '</span><span class="st st--' + st.cls + '">' + esc(en ? st.en : it.status) + '</span></div>';
         var meta;
         if (it.form === 'workshop') {
           meta = '<b class="lkcard__title">' + t('lk.ws') + ' · ' + esc(it.title) + '</b><ul class="lkcard__meta">' +
@@ -917,7 +913,7 @@
   }
 
   /* ───────────────────────── 워크숍 ─────────────────────────
-   * 목록은 구글 시트 '워크숍관리' 탭에서 불러옵니다 (GET ?action=workshops).
+   * 목록은 구글 시트 '워크숍관리' 탭에서 불러옵니다 (GET ?site=lab&action=workshops).
    * 데모 모드에서는 config.demoWorkshops 를 사용합니다.
    * 금액은 서버가 시트 기준으로 다시 계산해 저장합니다 (화면 값은 표시용).
    */
@@ -927,7 +923,7 @@
   function loadWorkshops() {
     if (DEMO) { WS.items = (CFG.demoWorkshops || []).filter(function (w) { return w.date >= TODAY && w.status !== '숨김'; }); renderWorkshops(); return; }
     renderWorkshops();
-    var url = CFG.API_URL + (CFG.API_URL.indexOf('?') < 0 ? '?' : '&') + 'action=workshops';
+    var url = CFG.API_URL + (CFG.API_URL.indexOf('?') < 0 ? '?' : '&') + 'site=lab&action=workshops'; // 학원과 같은 웹앱 URL → site=lab 으로 LAB 처리
     fetch(url, { redirect: 'follow' }).then(function (r) { return r.json(); }).then(function (res) {
       if (res && res.ok) WS.items = res.items || []; else WS.error = true;
     }).catch(function () { WS.error = true; }).finally(renderWorkshops);
@@ -1111,9 +1107,10 @@
 
   /* ───────────────────────── 신청서 바로가기 ───────────────────────── */
   function gotoForm(kind) {
+    // program: 국문 1회권 · 월 등록 / foreign: 영문 1 Time (1회권만) / ws: 워크숍 (현재 언어 유지)
     var wantLang = kind === 'foreign' ? 'en' : (kind === 'ws' ? lang : 'ko');
     if (wantLang !== lang) { lang = wantLang; try { localStorage.setItem(LANG_KEY, lang); } catch (x) { /* 저장 불가 */ } renderAll(); }
-    state.prefer = kind === 'monthly' ? '4W' : (kind === 'single' || kind === 'foreign') ? '1T' : null;
+    state.prefer = kind === 'foreign' ? '1T' : null;
     document.getElementById(kind === 'ws' ? 'workshop' : 'classes').scrollIntoView({ behavior: 'smooth' });
   }
 
