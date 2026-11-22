@@ -60,7 +60,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar { position: sticky; top: 0; z-index: 20; background: rgba(13,13,14,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .topbar__in { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .brand { display: flex; align-items: center; text-decoration: none; }
-.brand img { display: block; height: 34px; width: auto; }
+.brand img { display: block; height: 40px; width: auto; } /* LAB 로고에 'STUDIO LAB' 글자가 있어 조금 크게 */
 .topbar__actions { display: flex; align-items: center; gap: 10px; }
 .lang { display: flex; border: 1px solid var(--line-2); border-radius: 999px; padding: 3px; }
 .lang button { border: 0; background: none; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; }
@@ -338,11 +338,10 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 
 /* ───── LAB ───── */
 .brand { gap: 8px; }
-.brand__lab { font-family: var(--display); font-size: 15px; letter-spacing: .12em; padding: 2px 8px 1px; border-radius: 6px; background: var(--accent); color: var(--accent-ink); line-height: 1.3; }
 .hero__logo { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
-.hero__lab { font-family: var(--display); font-size: clamp(40px, 7vw, 72px); line-height: .9; letter-spacing: .06em; color: var(--accent); }
 
 /* 신청서 바로가기 */
+#howto + #forms { padding-top: 0; } /* 신청 방법 바로 아래: 같은 배경이라 위 여백 겹침 제거 */
 .formcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .formcard { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); cursor: pointer; transition: border-color .15s, transform .15s; min-height: 140px; }
 .formcard:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -386,7 +385,6 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 @media (max-width: 600px) {
   .formcard { min-height: 0; padding: 16px; }
   .formcard b { font-size: 15px; }
-  .brand__lab { font-size: 13px; }
 }
 
 /* toast */
@@ -419,7 +417,7 @@ input[aria-invalid="true"] { border-color: var(--danger); }
   .cls__time b { font-size: 20px; }
   .steps { grid-template-columns: 1fr; }
   .notice .wrap { flex-direction: column; gap: 8px; }
-  .brand img { height: 30px; }
+  .brand img { height: 36px; }
   .hdr-link { display: none; }
   .modal { padding: 0; align-items: flex-end; }
   .modal__panel { max-width: none; border-radius: 18px 18px 0 0; max-height: 94vh; max-height: 94dvh; border-bottom: 0; }
